@@ -1,8 +1,11 @@
-import pika
+"""Cliente RPC para comunicação com servidor RabbitMQ usando padrão RPC."""
+
 import uuid
 import json
+import pika
 
 class ClienteRPC:
+    """Cliente RPC que se comunica com o servidor via RabbitMQ."""
     def __init__(self):
         self.credenciais = pika.PlainCredentials('guest', 'f53jWDpHpn')
         self.parametros = pika.ConnectionParameters('198.27.114.55', credentials=self.credenciais)
@@ -20,11 +23,13 @@ class ClienteRPC:
         self.response = None
         self.corr_id = None
 
-    def on_response(self, ch, method, props, body):
+    def on_response(self, _, props, body):
+        """Callback executada quando a resposta do servidor é recebida."""
         if self.corr_id == props.correlation_id:
             self.response = body
 
     def enviar_requisicao(self, dados):
+        """Envia uma requisição para o servidor com os dados fornecidos."""
         self.response = None
         self.corr_id = str(uuid.uuid4())
         self.channel.basic_publish(
@@ -42,6 +47,7 @@ class ClienteRPC:
 
 
 def selecionar_comando():
+    """Exibe as opções e retorna o comando selecionado pelo usuário."""
     print("Selecione um comando para enviar ao servidor:")
     print("1. DistribuidosBot")
     print("2. Alterar arquivo")
@@ -50,10 +56,9 @@ def selecionar_comando():
     return comando
 
 
-
-cliente = ClienteRPC()
-
-if __name__ == "__main__":
+def main():
+    """Loop principal do cliente."""
+    cliente = ClienteRPC()
     while True:
         comando = selecionar_comando()
         if comando == '1':
@@ -67,3 +72,6 @@ if __name__ == "__main__":
             print(cliente.enviar_requisicao({'comando': 'calcular', 'valor': valor}))
         else:
             print("Comando inválido. Tente novamente.")
+
+if __name__ == "__main__":
+    main()
